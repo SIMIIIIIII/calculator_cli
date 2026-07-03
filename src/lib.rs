@@ -32,6 +32,10 @@ pub fn parse_expression(input: &str) -> Result<ParsedExpression, CalcError> {
     let mut parts: Vec<f64> = Vec::new();
 
     for x in trimmed.chars(){
+        if x.is_whitespace(){
+            continue;
+        }
+
         let operator = signs.get(&x).copied().unwrap_or(Operator::NoOperator);
 
         if operator != Operator::NoOperator {
@@ -48,6 +52,10 @@ pub fn parse_expression(input: &str) -> Result<ParsedExpression, CalcError> {
             temp.clear();
         }
         else {
+            if !x.is_numeric() && x != '.' {
+                return Err(CalcError::InvalidOperator(x.to_string()));
+            }
+
             temp.push(x);
         }
     }

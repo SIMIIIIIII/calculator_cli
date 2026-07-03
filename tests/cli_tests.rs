@@ -1,5 +1,5 @@
 use std::process::Command;
-use calc_cli::{
+use calculator_cli::{
     CalcError, Operator, ParsedExpression, evaluate_expression, format_result, parse_expression,
 };
 
@@ -7,7 +7,7 @@ use calc_cli::{
 // Ce test vérifie le mode "commande directe": on passe l'expression en arguments.
 #[test]
 fn cli_returns_result_for_valid_expression_arg() {
-    let output = Command::new(env!("CARGO_BIN_EXE_calc_cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_calculator_cli"))
         .arg("4")
         .arg("+")
         .arg("5")
@@ -23,7 +23,7 @@ fn cli_returns_result_for_valid_expression_arg() {
 // Ce test vérifie qu'une erreur de calcul remonte bien avec un code d'échec.
 #[test]
 fn cli_fails_on_division_by_zero() {
-    let output = Command::new(env!("CARGO_BIN_EXE_calc_cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_calculator_cli"))
         .arg("4")
         .arg("/")
         .arg("0")
@@ -44,9 +44,8 @@ fn parse_valid_expression() {
     assert_eq!(
         parsed,
         ParsedExpression {
-            left: 12.0,
-            operator: Operator::Add,
-            right: 3.0,
+            operators: vec![Operator::Add],
+            parts: vec![12.0, 3.0]
         }
     );
 }
