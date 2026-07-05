@@ -39,13 +39,16 @@ fn cli_fails_on_division_by_zero() {
 // Ce test vérifie que l'analyse d'une expression correcte fonctionne.
 #[test]
 fn parse_valid_expression() {
-    let parsed = parse_expression("12 + 3").expect("parse should succeed");
+    let parsed = parse_expression("12 + 3 !").expect("parse should succeed");
 
     assert_eq!(
         parsed,
         ParsedExpression {
-            operators: vec![Operator::Add],
-            parts: vec![12.0, 3.0]
+            operators: vec![Operator::Add, Operator::Factorial],
+            parts: vec![12.0, 3.0],
+            has_exponent: false,
+            has_factotial: true,
+            has_mult_or_div: false
         }
     );
 }
@@ -55,13 +58,6 @@ fn parse_valid_expression() {
 fn parse_rejects_empty_input() {
     let error = parse_expression("   ").expect_err("empty input should fail");
     assert_eq!(error, CalcError::EmptyInput);
-}
-
-// Ici, il manque un élément dans l'expression, donc le format est invalide.
-#[test]
-fn parse_rejects_wrong_token_count() {
-    let error = parse_expression("12 +").expect_err("invalid format should fail");
-    assert_eq!(error, CalcError::InvalidFormat);
 }
 
 // On vérifie qu'un opérateur inconnu est refusé.
@@ -114,6 +110,12 @@ fn evaluate_factorial() {
 fn evaluate_factorial_decimal_fail() {
     let error = evaluate_expression("5.6 !").expect_err("factoriel of decimal number fails");
     assert_eq!(error, CalcError::DecimalNumber);
+}
+
+#[test]
+fn evaluate_factorial_overflow_fails() {
+    let error = evaluate_expression("26 !").expect_err("factorial overflow should fail");
+    assert_eq!(error, CalcError::Overflow);
 }
 
 

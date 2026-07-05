@@ -10,6 +10,7 @@ pub enum CalcError {
     DivisionByZero,
     NegativeNumber,
     DecimalNumber,
+    Overflow,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -20,13 +21,17 @@ pub enum Operator {
     Divide,
     Factorial,
     Modulo,
+    Exponent,
     NoOperator
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ParsedExpression {
     pub operators: Vec<Operator>,
-    pub parts: Vec<f64>
+    pub parts: Vec<f64>,
+    pub has_exponent: bool,
+    pub has_factotial: bool,
+    pub has_mult_or_div: bool
 }
 
 impl fmt::Display for CalcError {
@@ -39,6 +44,7 @@ impl fmt::Display for CalcError {
             Self::DivisionByZero => write!(f, "division par zero"),
             Self::DecimalNumber => write!(f, "Nombre decimal invalide pour une factorielle"),
             Self::NegativeNumber => write!(f, "Nombre negatif invalode pour une factorielle"),
+            Self::Overflow => write!(f, "depassement de capacite numerique"),
         }
     }
 }
@@ -51,5 +57,6 @@ pub fn get_signs() -> HashMap<char, Operator> {
         ('*', Operator::Multiply),
         ('!', Operator::Factorial),
         ('%', Operator::Modulo),
+        ('^', Operator::Exponent)
     ]);
 }

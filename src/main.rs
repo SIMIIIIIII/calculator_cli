@@ -1,19 +1,52 @@
+mod files;
+
 use std::io::{self, Write};
 use std::process::ExitCode;
+
+pub use files::{open_history_file, save_history, print_history};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
+    let mut file = open_history_file();
+
     if !args.is_empty() {
         let expression = args.join(" ");
-        return match calculator_cli::evaluate_expression(&expression) {
+
+        return if expression.trim().eq_ignore_ascii_case("history") {
+            match file.as_mut() {
+                Ok(f) => {
+                    if let Err(error) = print_history(f) {
+                        eprintln!("Erreur historique: {error}");
+                        ExitCode::FAILURE
+                    } else {
+                        ExitCode::SUCCESS
+                    }
+                }
+                Err(_) => {
+                    println!("Pas d'historique!");
+                    ExitCode::SUCCESS
+                }
+            }
+        } else {
+            match calculator_cli::evaluate_expression(&expression) {
             Ok(result) => {
                 println!("{}", calculator_cli::format_result(result));
+
+                match file.as_mut() {
+                    Ok(f) => {
+                        if save_history(expression.trim(), result, f).is_ok() {
+                        }
+                    }
+                    Err(_) => {},
+                }
+
                 ExitCode::SUCCESS
             }
             Err(error) => {
                 eprintln!("Erreur: {error}");
                 ExitCode::FAILURE
+            }
             }
         };
     };
@@ -58,9 +91,31 @@ fn main() -> ExitCode {
             println!("Operateurs supportes: + - * /");
             continue;
         }
+
+        if trimmed.eq_ignore_ascii_case("history") {
+            match file.as_mut() {
+                Ok(f) => {
+                    if let Err(error) = print_history(f) {
+                        eprintln!("Erreur historique: {error}");
+                    }
+                }
+                Err(_) => println!("Pas d'historique!"),
+            }
+            continue;
+        }
         
         match calculator_cli::evaluate_expression(trimmed) {
-            Ok(result) => println!("= {}", calculator_cli::format_result(result)),
+            Ok(result) => {
+                println!("= {}", calculator_cli::format_result(result));
+
+                match file.as_mut() {
+                    Ok(f) => {
+                        if save_history(trimmed, result, f).is_ok() {
+                        }
+                    }
+                    Err(_) => {},
+                }
+            },
             Err(error) => eprintln!("Erreur: {error}"),
         }
     }
