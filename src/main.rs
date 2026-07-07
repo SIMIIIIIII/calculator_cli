@@ -3,7 +3,8 @@ mod files;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-pub use files::{open_history_file, save_history, print_history};
+use calculator_cli::{Expression};
+pub use files::{open_history_file, save_history, print_history,};
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -29,24 +30,32 @@ fn main() -> ExitCode {
                 }
             }
         } else {
-            match calculator_cli::evaluate_expression(&expression) {
-            Ok(result) => {
-                println!("{}", calculator_cli::format_result(result));
+            match Expression::from(&expression) {
+                Err(e) => {
+                    eprintln!("Erreur I/O: {e}");
+                    ExitCode::FAILURE
+                },
+                Ok(parsed) => {
+                    match parsed.eval() {
+                        Ok(result) => {
+                            println!("{}", Expression::format_result(result));
 
-                match file.as_mut() {
-                    Ok(f) => {
-                        if save_history(expression.trim(), result, f).is_ok() {
+                            match file.as_mut() {
+                                Ok(f) => {
+                                    if save_history(expression.trim(), result, f).is_ok() {
+                                    }
+                                }
+                                Err(_) => {},
+                            }
+
+                            ExitCode::SUCCESS
+                        }
+                        Err(error) => {
+                            eprintln!("Erreur: {error}");
+                            ExitCode::FAILURE
                         }
                     }
-                    Err(_) => {},
                 }
-
-                ExitCode::SUCCESS
-            }
-            Err(error) => {
-                eprintln!("Erreur: {error}");
-                ExitCode::FAILURE
-            }
             }
         };
     };
@@ -104,19 +113,28 @@ fn main() -> ExitCode {
             continue;
         }
         
-        match calculator_cli::evaluate_expression(trimmed) {
-            Ok(result) => {
-                println!("= {}", calculator_cli::format_result(result));
-
-                match file.as_mut() {
-                    Ok(f) => {
-                        if save_history(trimmed, result, f).is_ok() {
+        match Expression::from(&trimmed) {
+            Err(e) => {
+                eprintln!("Erreur I/O: {e}");
+            },
+            Ok(parsed) => {
+                match parsed.eval() {
+                    Ok(result) => {
+                        println!("{}", Expression::format_result(result));
+                        
+                        match file.as_mut() {
+                            Ok(f) => {
+                                if save_history(trimmed, result, f).is_ok() {
+                                }
+                            }
+                            Err(_) => {},
                         }
                     }
-                    Err(_) => {},
+                    Err(error) => {
+                        eprintln!("Erreur: {error}");
+                    }
                 }
-            },
-            Err(error) => eprintln!("Erreur: {error}"),
+            }
         }
     }
 }

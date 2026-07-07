@@ -1,23 +1,29 @@
 # Calculator CLI en Rust
 
-Petit projet de calculatrice en ligne de commande pour pratiquer Rust:
-- parsing d'expressions
-- gestion des erreurs
-- tests CLI
+Calculatrice en ligne de commande écrite en Rust pour pratiquer :
+- parsing d'expressions arithmétiques avec arbre binaire
+- gestion des erreurs typées
+- tests unitaires et d'intégration CLI
 - historique persistant borné
 
 ## Fonctionnalités
 
 - Calcul en mode argument direct
 - Calcul en mode interactif (boucle de saisie)
-- Opérateurs pris en charge: `+`, `-`, `*`, `/`, `%`, `^`, `!`
-- Priorité des opérations:
-1. factorielle `!`
-2. puissance `^`
-3. multiplication, division, modulo (`*`, `/`, `%`)
-4. addition, soustraction (`+`, `-`)
-- Historique enregistré dans `history.txt`
-- Historique limité aux 100 dernières entrées (pour éviter une croissance infinie)
+- Support des parenthèses imbriquées : `((-2 * 3) / 2)`
+- Opérateurs supportés :
+
+| Symbole | Opération        | Exemple       |
+|---------|-----------------|---------------|
+| `+`     | Addition         | `5 + 3` → `8` |
+| `-`     | Soustraction     | `5 - 3` → `2` |
+| `*`     | Multiplication   | `4 * 3` → `12`|
+| `/`     | Division         | `9 / 3` → `3` |
+| `%`     | Modulo           | `7 % 3` → `1` |
+| `^`     | Puissance        | `2 ^ 8` → `256`|
+| `!`     | Factorielle      | `5 !` → `120` |
+
+- Historique enregistré dans `history.txt`, limité aux 100 dernières entrées
 
 ## Prérequis
 
@@ -26,78 +32,90 @@ Petit projet de calculatrice en ligne de commande pour pratiquer Rust:
 
 ## Installation
 
-Depuis la racine du projet:
-
 ```bash
 cargo build
 ```
 
 ## Utilisation
 
-### 1) Mode argument direct
+### Mode argument direct
 
 ```bash
-cargo run -- 1 + 2
+cargo run -- 5 + 3
+# ou avec des parenthèses (guillemets nécessaires dans le shell)
+cargo run -- "(2 ^ 3) * 2"
 ```
 
-Exemple:
-
-```text
-3
-```
-
-### 2) Mode interactif
+### Mode interactif
 
 ```bash
 cargo run
 ```
 
-Commandes disponibles:
-- `help`: affiche l'aide
-- `history`: affiche l'historique
-- `quit`: quitte le programme
+Commandes disponibles :
+- `help` — affiche l'aide
+- `history` — affiche l'historique des calculs
+- `quit` — quitte le programme
 
-Exemple de session:
+Exemple de session :
 
 ```text
 > 5 * 4
-= 20
-> 3 !
-= 6
+20
+> (2 ^ 2 + 1) !
+120
+> 7 % 3
+1
 > history
-Ancien calcul : 5 * 4 = 20
-Ancien calcul : 3 ! = 6
+5 * 4 = 20
+(2 ^ 2 + 1) ! = 120
+7 % 3 = 1
 ```
+
+## Gestion des erreurs
+
+| Erreur                  | Déclenchement                              |
+|-------------------------|--------------------------------------------|
+| `EmptyInput`            | Expression vide                            |
+| `InvalidFormat`         | Syntaxe incorrecte                         |
+| `InvalidNumber`         | Token non parseable comme nombre           |
+| `InvalidOperator`       | Caractère non reconnu comme opérateur      |
+| `DivisionByZero`        | Diviseur ou modulo égal à zéro             |
+| `NegativeNumber`        | Factorielle d'un nombre négatif            |
+| `DecimalNumber`         | Factorielle d'un nombre décimal            |
+| `Overflow`              | Résultat trop grand (ex: `21!`)            |
+| `ExpressionConstruction`| Construction d'arbre invalide              |
+| `InvalidOperation`      | Opération interne invalide                 |
 
 ## Historique
 
-- Fichier: `history.txt`
-- Politique de conservation: uniquement les 100 dernières lignes
-- Chaque ligne est stockée au format:
-
-```text
-expression = resultat
-```
+- Fichier : `history.txt`
+- Format de chaque ligne : `expression = résultat`
+- Politique : uniquement les 100 dernières entrées conservées
 
 ## Tests
-
-Lancer tous les tests:
 
 ```bash
 cargo test
 ```
 
-Le projet contient des tests d'intégration CLI dans `tests/cli_tests.rs`.
+- `tests/expression_tests.rs` — tests unitaires sur le parsing et l'évaluation
+- `tests/cli_tests.rs` — tests d'intégration sur le binaire compilé
 
 ## Commandes Make
 
-Le projet inclut un `Makefile` avec des raccourcis:
-
 ```bash
-make help
-make build
-make run ARGS="1 + 2"
-make test
+make build        # Compile en mode debug
+make run ARGS="5 + 3"  # Lance avec arguments
+make release      # Compile en mode release
+make test         # Lance les tests
+make check        # Vérifie la compilation sans produire de binaire
+make fmt          # Formate le code
+make clippy       # Lance clippy
+make doc          # Génère la documentation
+make clean        # Nettoie les artefacts
+```
+
 make check
 make fmt
 make clippy
